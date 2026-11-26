@@ -50,6 +50,7 @@ function label(page, name) {
 
 function route(pattern, handler) {
     new pages.Route(prefix + pattern, function(page, a, b, c) {
+        page.loading = true; // some routes fetch before directory() sets up the page
         try {
             handler(page, a, b, c);
             page.loading = false;
@@ -213,18 +214,34 @@ function helixItem(kind, item) {
     return node;
 }
 
+function topGames(cursor) {
+    var batch = account.catalog('games/top', {}, cursor);
+    if (!batch) return null;
+    var games = batch.nodes.filter(function(game) { return game && /^\d+$/.test(game.id); });
+    var stats = twitch.gameStats(games.map(function(game) { return game.id; }));
+    batch.nodes = games.map(function(game) {
+        var counts = stats['g' + game.id] || {};
+        return {slug: 'id-' + game.id, displayName: game.name, boxArtURL: art(game.box_art_url, 288, 384),
+            channelsCount: counts.channelsCount, viewersCount: counts.viewersCount};
+    });
+    return batch;
+}
+
 function helixListing(page, kind, scope, key) {
-    if (!account.login() || kind === 'games') return false;
-    var filters = {};
-    if (scope === 'category') filters.game_id = twitch.category(key).id;
-    if (scope === 'channel') {
-        filters[kind === 'clips' ? 'broadcaster_id' : 'user_id'] = twitch.channel(key).id;
-    }
-    if (kind === 'videos' && scope === 'category') filters.sort = 'views';
-    function load(cursor) {
-        var batch = account.catalog(kind, filters, cursor);
-        if (batch) batch.nodes = batch.nodes.map(function(item) { return helixItem(kind, item); });
-        return batch;
+    if (!account.login()) return false;
+    var load = topGames;
+    if (kind !== 'games') {
+        var filters = {};
+        if (scope === 'category') filters.game_id = twitch.category(key).id;
+        if (scope === 'channel') {
+            filters[kind === 'clips' ? 'broadcaster_id' : 'user_id'] = twitch.channel(key).id;
+        }
+        if (kind === 'videos' && scope === 'category') filters.sort = 'views';
+        load = function(cursor) {
+            var batch = account.catalog(kind, filters, cursor);
+            if (batch) batch.nodes = batch.nodes.map(function(item) { return helixItem(kind, item); });
+            return batch;
+        };
     }
     var batch = load();
     if (!batch) return false;
@@ -316,24 +333,7 @@ route('(videos|clips)$', function(page, kind) {
     }
     attachCatalog(page, kind, load(), load);
 });
-route('categories$', function(page) {
-    function load(cursor) {
-        var batch = account.catalog('games/top', {}, cursor);
-        if (!batch) return null;
-        var games = batch.nodes.filter(function(game) { return game && /^\d+$/.test(game.id); });
-        var stats = twitch.gameStats(games.map(function(game) { return game.id; }));
-        batch.nodes = games.map(function(game) {
-            var counts = stats['g' + game.id] || {};
-            return {slug: 'id-' + game.id, displayName: game.name, boxArtURL: art(game.box_art_url, 288, 384),
-                channelsCount: counts.channelsCount, viewersCount: counts.viewersCount};
-        });
-        return batch;
-    }
-    var batch = load();
-    if (!batch) return listing(page, 'Категории Twitch', 'games');
-    directory(page, 'Категории Twitch', 'games', 'poster');
-    attachCatalog(page, 'games', batch, load);
-});
+route('categories$', function(page) { listing(page, 'Категории Twitch', 'games'); });
 
 route('account$', function(page) {
     directory(page, 'Аккаунт Twitch', 'account', 'detail', icon);
