@@ -42,10 +42,12 @@ exports.setClientId = function(value) {
     save(null);
 };
 exports.login = function() { return session && session.login; };
+// Sessions from before follows were supported have no userId and no follows scope.
+exports.userId = function() { return session && session.userId; };
 exports.logout = function() { save(null); };
 
 exports.start = function(id) {
-    var reply = post('device', {client_id: id, scope: ''});
+    var reply = post('device', {client_id: id, scopes: 'user:read:follows'});
     var data = reply.data;
     if (reply.status !== 200 || !data.device_code || !/^[A-Z0-9-]{4,16}$/i.test(data.user_code) ||
         !(data.expires_in > 0)) {
@@ -93,6 +95,7 @@ function setToken(id, token) {
     var identity = validate(id, value.accessToken);
     if (!identity) throw new Error('Twitch не подтвердил токен пользователя.');
     value.login = identity.login;
+    value.userId = identity.user_id;
     return value;
 }
 
@@ -115,6 +118,7 @@ function refresh(value) {
     if (reply.status !== 200) throw new Error('Не удалось обновить вход Twitch (HTTP ' + reply.status + ').');
     // Store the rotated refresh token before doing any further network I/O.
     var fresh = sessionValue(value.clientId, value.login, reply.data);
+    fresh.userId = value.userId;
     save(fresh);
     return fresh;
 }

@@ -92,7 +92,7 @@ assert.deepStrictEqual(inner.nodes, [{id: '1'}], 'concurrent caller is not rejec
 
 // An expired token is refreshed and the rotated refresh token is stored, or the next refresh logs the user out.
 delete require.cache[require.resolve('../account')];
-saved.session = {clientId: 'cid', login: 'me', accessToken: 'old', refreshToken: 'r1', expires: Date.now() - 1000};
+saved.session = {clientId: 'cid', login: 'me', userId: '42', accessToken: 'old', refreshToken: 'r1', expires: Date.now() - 1000};
 account = require('../account');
 stubs['movian/http'].request = function(url, options) {
     if (url.indexOf('/token') !== -1) {
@@ -107,6 +107,20 @@ account.catalog('games/top', {});
 assert.strictEqual(saved.session.refreshToken, 'r2', 'rotated refresh token is saved');
 assert.strictEqual(disk['/movian/store/account'].session.refreshToken, 'r2', 'and on disk at once');
 assert.strictEqual(saved.session.accessToken, 'a2');
+assert.strictEqual(account.userId(), '42', 'refresh keeps the user id the follows list needs');
+
+// Login asks for the follows scope and stores the Twitch user id.
+stubs['movian/http'].request = function(url, options) {
+    if (url.indexOf('/device') !== -1) {
+        assert.strictEqual(options.postdata.scopes, 'user:read:follows');
+        return json({device_code: 'd', user_code: 'ABCD1234', expires_in: 1800});
+    }
+    return json({client_id: account.clientId(), login: 'me', user_id: '77'});
+};
+account.start(account.clientId());
+assert.ok(account.complete(account.clientId(), {access_token: 'a', refresh_token: 'r', expires_in: 100},
+    function() { return true; }));
+assert.strictEqual(account.userId(), '77');
 
 // GraphQL: one retry on Twitch's transient "service error", then give up.
 var twitch = require('../twitch');

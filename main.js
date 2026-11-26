@@ -137,6 +137,8 @@ function streamItem(page, stream, user) {
 function listItem(page, kind, node) {
     if (kind === 'streams') {
         streamItem(page, node);
+    } else if (kind === 'channels') {
+        channelItem(page, node);
     } else if (kind === 'games') {
         if (node.slug) categoryItem(page, node);
     } else if (kind === 'videos' && node.id) {
@@ -154,7 +156,7 @@ function attachCatalog(page, kind, batch, load) {
     function append(current) {
         var added = false;
         current.nodes.forEach(function(node) {
-            var key = kind === 'streams' ? node.broadcaster && node.broadcaster.login :
+            var key = kind === 'streams' ? node.broadcaster && node.broadcaster.login : kind === 'channels' ? node.login :
                 (kind === 'clips' || kind === 'games' ? node.slug : node.id);
             if (!key || seen[key]) return;
             seen[key] = true;
@@ -342,11 +344,20 @@ route('account$', function(page) {
     directory(page, 'Аккаунт Twitch', 'account', 'detail', icon);
     accountPage(page);
 });
+function followedChannels(cursor) {
+    var batch = account.catalog('channels/followed', {user_id: account.userId()}, cursor);
+    if (batch) batch.nodes = twitch.users(batch.nodes.map(function(follow) { return follow.broadcaster_login; }));
+    return batch;
+}
+
+// Local favorites first, then the channels the account follows on Twitch (read-only: Twitch has no follow API).
 route('favorites$', function(page) {
     directory(page, 'Избранные каналы', 'favorites', 'cards');
-    var channels = savedChannels();
-    if (!channels.length) page.metadata.notice = 'Добавьте канал в избранное на его странице.';
-    channels.forEach(function(user) { channelItem(page, user); });
+    var batch = account.userId() && followedChannels() || {nodes: []};
+    batch.nodes = savedChannels().concat(batch.nodes);
+    attachCatalog(page, 'channels', batch, followedChannels);
+    if (account.login() && !account.userId()) page.metadata.notice = 'Войдите заново, чтобы показать подписки Twitch.';
+    else if (!batch.nodes.length) page.metadata.notice = 'Добавьте канал в избранное на его странице.';
 });
 
 route('search:(.+)$', function(page, query) { search(page, decodeURIComponent(query)); });

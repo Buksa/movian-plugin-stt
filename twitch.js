@@ -109,6 +109,12 @@ exports.popularMedia = function(kind, ids) {
     });
 };
 
+exports.users = function(logins) {
+    if (!logins.length) return [];
+    var users = gql('users(logins:' + JSON.stringify(logins) + '){' + userFields + ' stream{id}}').users || [];
+    return users.filter(function(user) { return user && user.login; });
+};
+
 exports.channel = function(login) {
     var user = gql(parentField('channel', login) + '{id ' + userFields + ' stream{' + streamFields + '}}').user;
     if (!user) throw new Error('Канал Twitch не найден.');
