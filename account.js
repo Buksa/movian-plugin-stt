@@ -75,22 +75,20 @@ function validate(id, accessToken) {
     return reply.data;
 }
 
-function checkToken(token) {
+function sessionValue(id, login, token) {
     if (!token.access_token || !token.refresh_token || !(token.expires_in > 0)) {
         throw new Error('Twitch вернул неполный токен.');
     }
-}
-
-function sessionValue(id, login, token) {
     return {clientId: id, login: login, accessToken: token.access_token,
         refreshToken: token.refresh_token, expires: Date.now() + Number(token.expires_in) * 1000};
 }
 
 function setToken(id, token) {
-    checkToken(token);
-    var identity = validate(id, token.access_token);
+    var value = sessionValue(id, null, token);
+    var identity = validate(id, value.accessToken);
     if (!identity) throw new Error('Twitch не подтвердил токен пользователя.');
-    return sessionValue(id, identity.login, token);
+    value.login = identity.login;
+    return value;
 }
 
 exports.complete = function(id, token, active) {
@@ -111,7 +109,6 @@ function refresh(value) {
     }
     if (reply.status !== 200) throw new Error('Не удалось обновить вход Twitch (HTTP ' + reply.status + ').');
     // Store the rotated refresh token before doing any further network I/O.
-    checkToken(reply.data);
     var fresh = sessionValue(value.clientId, value.login, reply.data);
     save(fresh);
     return fresh;
