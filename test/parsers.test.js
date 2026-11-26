@@ -166,6 +166,21 @@ var keys = ['Streams', 'Videos', 'Clips']; // main.js sections, translated throu
 });
 Object.keys(i18n.viewKeys).forEach(function(id) { keys.push(i18n.viewKeys[id]); });
 keys.forEach(function(key) { assert.notStrictEqual(i18n.t(key), key, 'no Russian in lang/ru.lang for ' + key); });
+// Every language file has every key, with the same placeholders.
+fs.readdirSync(path.join(__dirname, '../lang')).forEach(function(file) {
+    var text = fs.readFileSync(path.join(__dirname, '../lang', file), 'utf8');
+    var table = {};
+    text.replace(/^id: (.*)\nmsg: (.*)$/gm, function(_, id, msg) { table[id] = msg; });
+    keys.forEach(function(key) {
+        assert.ok(key in table, file + ': missing ' + key);
+        assert.strictEqual(table[key].split('%s').length, key.split('%s').length, file + ': placeholders in ' + key);
+    });
+});
+stubs['movian/prop'].global.i18n.iso639_1 = 'sp';
+assert.strictEqual(i18n.t('Search'), 'Buscar', "Movian's Spanish reports sp; it reads lang/es.lang");
+stubs['movian/prop'].global.i18n.iso639_1 = 'it';
+assert.strictEqual(i18n.t('Channel: %s', 'x'), 'Canale: x');
+stubs['movian/prop'].global.i18n.iso639_1 = 'ru';
 assert.strictEqual(i18n.t('Channel: %s', 'x'), 'Канал: x');
 assert.strictEqual(i18n.t('Twitch search: %s', "$& $' x"), "Поиск Twitch: $& $' x", '$ patterns stay literal');
 assert.strictEqual(i18n.viewText().navSearch, 'Поиск');

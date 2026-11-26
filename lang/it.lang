@@ -1,0 +1,248 @@
+language: Italian
+native: Italiano
+#
+# SmartTwitchTV. id: is the English text the plugin shows, msg: the translation.
+#
+
+id: Live streams
+msg: Dirette
+
+id: Twitch categories
+msg: Categorie di Twitch
+
+id: Twitch account
+msg: Account Twitch
+
+id: Favorite channels
+msg: Canali preferiti
+
+id: Streams
+msg: Trasmissioni
+
+id: Videos
+msg: Video
+
+id: Clips
+msg: Clip
+
+id: Twitch search: %s
+msg: Ricerca su Twitch: %s
+
+id: Channel, category or Twitch link
+msg: Canale, categoria o link di Twitch
+
+id: Nothing found.
+msg: Nessun risultato.
+
+id: Nothing here yet.
+msg: Qui non c'è ancora niente.
+
+id: Log in to Twitch for more pages.
+msg: Accedi a Twitch per vedere altre pagine.
+
+id: Twitch session ended. Log in again.
+msg: La sessione di Twitch è terminata. Accedi di nuovo.
+
+id: Log in again to show your Twitch follows.
+msg: Accedi di nuovo per vedere i canali che segui su Twitch.
+
+id: Add a channel to favorites on its page.
+msg: Aggiungi un canale ai preferiti dalla sua pagina.
+
+id: Channel added to favorites
+msg: Canale aggiunto ai preferiti
+
+id: Channel removed from favorites
+msg: Canale rimosso dai preferiti
+
+id: Add to favorites
+msg: Aggiungi ai preferiti
+
+id: Remove from favorites
+msg: Rimuovi dai preferiti
+
+id: Live
+msg: In diretta
+
+id: Offline
+msg: Offline
+
+id: Channel: %s
+msg: Canale: %s
+
+id: Category: %s
+msg: Categoria: %s
+
+id: Open the stream on the channel page.
+msg: Apri la diretta dalla pagina del canale.
+
+id: Source · %s
+msg: Sorgente · %s
+
+id: Twitch video
+msg: Video di Twitch
+
+id: Twitch clip
+msg: Clip di Twitch
+
+id: Logged in as %s
+msg: Accesso effettuato come %s
+
+id: Logged in as %s. Open “Categories”.
+msg: Accesso effettuato come %s. Apri «Categorie».
+
+id: Log in to open the full category catalog.
+msg: Accedi per aprire il catalogo completo delle categorie.
+
+id: Code login cancelled.
+msg: Accesso con codice annullato.
+
+id: Log in with a code
+msg: Accedi con un codice
+
+id: Requesting a code from Twitch…
+msg: Richiesta di un codice a Twitch…
+
+id: On your phone open twitch.tv/activate?public=true and enter the code.
+msg: Sul telefono apri twitch.tv/activate?public=true e inserisci il codice.
+
+id: The code expired. Request a new one.
+msg: Il codice è scaduto. Richiedine uno nuovo.
+
+id: Login denied.
+msg: Accesso negato.
+
+id: Set Public Client ID
+msg: Imposta Public Client ID
+
+id: Public Client ID (leave empty for the built-in one)
+msg: Public Client ID (lascia vuoto per usare quello integrato)
+
+id: Enter a Public Client ID, not a secret.
+msg: Inserisci un Public Client ID, non un segreto.
+
+id: Choose “Log in with a code”.
+msg: Scegli «Accedi con un codice».
+
+id: Log out / cancel login
+msg: Esci / annulla l'accesso
+
+id: Twitch account disconnected.
+msg: Account Twitch scollegato.
+
+id: Twitch gave no code. Check that the Client ID belongs to a Public app.
+msg: Twitch non ha fornito un codice. Verifica che il Client ID appartenga a un'app di tipo Public.
+
+id: Twitch rejected the login code (HTTP %s). Request a new code.
+msg: Twitch ha rifiutato il codice di accesso (HTTP %s). Richiedi un nuovo codice.
+
+id: Could not check the Twitch session (HTTP %s).
+msg: Impossibile verificare la sessione di Twitch (HTTP %s).
+
+id: Twitch returned an incomplete token.
+msg: Twitch ha restituito un token incompleto.
+
+id: Twitch did not confirm the user token.
+msg: Twitch non ha confermato il token dell'utente.
+
+id: Could not renew the Twitch login (HTTP %s).
+msg: Impossibile rinnovare l'accesso a Twitch (HTTP %s).
+
+id: Twitch login check is already running. Open the catalog again.
+msg: La verifica dell'accesso a Twitch è già in corso. Apri di nuovo il catalogo.
+
+id: Could not load the Helix catalog (HTTP %s).
+msg: Impossibile caricare il catalogo Helix (HTTP %s).
+
+id: Invalid Twitch stream address.
+msg: Indirizzo della diretta Twitch non valido.
+
+id: Invalid Twitch stream CDN.
+msg: CDN della diretta Twitch non valida.
+
+id: Twitch playlist unavailable (HTTP %s).
+msg: Playlist di Twitch non disponibile (HTTP %s).
+
+id: Twitch offered no compatible H.264 variant.
+msg: Twitch non ha offerto una variante H.264 compatibile.
+
+id: Could not connect to Twitch: %s
+msg: Impossibile connettersi a Twitch: %s
+
+id: Twitch returned HTTP %s
+msg: Twitch ha restituito HTTP %s
+
+id: Twitch API error
+msg: Errore dell'API di Twitch
+
+id: Unknown Twitch section.
+msg: Sezione di Twitch sconosciuta.
+
+id: Channel or category not found.
+msg: Canale o categoria non trovati.
+
+id: Twitch channel not found.
+msg: Canale Twitch non trovato.
+
+id: Twitch category not found.
+msg: Categoria Twitch non trovata.
+
+id: Twitch did not allow playback.
+msg: Twitch non ha consentito la riproduzione.
+
+id: The channel is offline.
+msg: Il canale non è in diretta.
+
+id: The Twitch video was deleted or is unavailable.
+msg: Il video di Twitch è stato eliminato o non è disponibile.
+
+id: The Twitch clip was deleted or is unavailable.
+msg: La clip di Twitch è stata eliminata o non è disponibile.
+
+id: The clip cannot be played.
+msg: La clip non può essere riprodotta.
+
+id: ← Menu   ·   OK Open
+msg: ← Menu   ·   OK Apri
+
+id: Loading Twitch…
+msg: Caricamento di Twitch…
+
+id: → Close menu
+msg: → Chiudi menu
+
+id: Search
+msg: Cerca
+
+id: Favorites
+msg: Preferiti
+
+id: Categories
+msg: Categorie
+
+id: Open channel
+msg: Apri canale
+
+id: Open category
+msg: Apri categoria
+
+id: Channels:
+msg: Canali:
+
+id: Viewers:
+msg: Spettatori:
+
+id: views
+msg: visualizzazioni
+
+id: viewers
+msg: spettatori
+
+id: Quality:
+msg: Qualità:
+
+id: Video quality
+msg: Qualità video
+
+id: ← Back to player
+msg: ← Torna al lettore

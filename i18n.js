@@ -16,9 +16,14 @@ var viewKeys = {
     quality: 'Quality:', videoQuality: 'Video quality', backToPlayer: '← Back to player'
 };
 
+// Movian names its Spanish catalog sp_SP.lang, so it reports "sp" instead of ISO 639-1 "es".
+var aliases = {sp: 'es'};
+
 function language() {
     // Read on every call: unset when the plugin starts, and the user can switch it while it runs.
-    try { return String(prop.global.i18n.iso639_1); } catch (e) { return ''; }
+    var lang;
+    try { lang = String(prop.global.i18n.iso639_1); } catch (e) { return ''; }
+    return aliases[lang] || lang;
 }
 
 function parse(text) {
