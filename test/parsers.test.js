@@ -71,4 +71,20 @@ assert.deepStrictEqual(account.poll('id', 'code'), {status: 'authorization_pendi
 replies.push(function() { return {statuscode: 400, toString: function() { return '{"message":"invalid device code"}'; }}; });
 assert.throws(function() { account.poll('id', 'code'); }, /HTTP 400/);
 
+// A second page asking for credentials while the hourly check waits on the network gets the live session.
+delete require.cache[require.resolve('../account')];
+saved.session = {clientId: 'cid', login: 'me', accessToken: 'a', refreshToken: 'r', expires: Date.now() + 3600000};
+account = require('../account');
+var inner;
+function json(body) { return {statuscode: 200, toString: function() { return JSON.stringify(body); }}; }
+stubs['movian/http'].request = function(url) {
+    if (url.indexOf('/validate') !== -1) {
+        inner = account.catalog('games/top', {});
+        return json({client_id: 'cid', login: 'me'});
+    }
+    return json({data: [{id: '1'}]});
+};
+assert.deepStrictEqual(account.catalog('games/top', {}).nodes, [{id: '1'}]);
+assert.deepStrictEqual(inner.nodes, [{id: '1'}], 'concurrent caller is not rejected');
+
 console.log('ok');

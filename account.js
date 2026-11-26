@@ -122,7 +122,11 @@ function credentials(force) {
     if (!value) return null;
     var now = Date.now();
     if (!force && value.expires > now + 60000 && now - checkedAt < 3600000) return value;
-    if (checking) throw new Error('Проверка входа Twitch уже идёт. Откройте каталог ещё раз.');
+    if (checking) {
+        // Another page is checking the session; a token that has not expired is still usable.
+        if (value.expires > now) return value;
+        throw new Error('Проверка входа Twitch уже идёт. Откройте каталог ещё раз.');
+    }
     checking = true;
     try {
         if (force || value.expires <= now + 60000) value = refresh(value);
