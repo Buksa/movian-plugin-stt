@@ -83,6 +83,7 @@ function language() {
 
 exports.t = function(text, arg) {
     var out = language() === 'ru' && ru[text] || text;
-    return arg === undefined ? out : out.replace('%s', arg);
+    // A function keeps $&, $' and similar in arg literal (search queries, Twitch error text).
+    return arg === undefined ? out : out.replace('%s', function() { return arg; });
 };
 exports.ru = ru;

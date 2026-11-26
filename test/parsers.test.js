@@ -169,6 +169,7 @@ var i18n = require('../i18n');
 var keys = ['Streams', 'Videos', 'Clips']; // main.js sections, translated through a variable
 keys.forEach(function(key) { assert.ok(i18n.ru[key], key); });
 assert.strictEqual(i18n.t('Channel: %s', 'x'), 'Канал: x');
+assert.strictEqual(i18n.t('Twitch search: %s', "$& $' x"), "Поиск Twitch: $& $' x", '$ patterns stay literal');
 stubs['movian/prop'].global.i18n.iso639_1 = 'de';
 assert.strictEqual(i18n.t('Channel: %s', 'x'), 'Channel: x', 'unknown language falls back to English');
 stubs['movian/prop'].global.i18n.iso639_1 = 'ru';

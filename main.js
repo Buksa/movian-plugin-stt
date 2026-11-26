@@ -354,10 +354,22 @@ function followedChannels(cursor) {
 // Local favorites first, then the channels the account follows on Twitch (read-only: Twitch has no follow API).
 route('favorites$', function(page) {
     directory(page, t('Favorite channels'), 'favorites', 'cards');
-    var batch = account.userId() && followedChannels() || {nodes: []};
-    batch.nodes = savedChannels().concat(batch.nodes);
+    var local = savedChannels();
+    var batch = {nodes: []};
+    var error;
+    try {
+        // Fresh avatars and live state for saved channels; on a Twitch failure the saved copies still show.
+        var fresh = Object.create(null);
+        twitch.users(local.map(function(user) { return user.login; })).forEach(function(user) { fresh[user.login] = user; });
+        local = local.map(function(user) { return fresh[user.login] || user; });
+        if (account.userId()) batch = followedChannels() || batch;
+    } catch (e) {
+        error = e.message || String(e);
+    }
+    batch.nodes = local.concat(batch.nodes);
     attachCatalog(page, 'channels', batch, followedChannels);
-    if (account.login() && !account.userId()) page.metadata.notice = t('Log in again to show your Twitch follows.');
+    if (error) page.metadata.notice = error;
+    else if (account.login() && !account.userId()) page.metadata.notice = t('Log in again to show your Twitch follows.');
     else if (!batch.nodes.length) page.metadata.notice = t('Add a channel to favorites on its page.');
 });
 
