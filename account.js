@@ -1,7 +1,9 @@
 // Movian's store proxy saves the value but its setter does not return true.
 
 var http = require('movian/http');
+var fs = require('fs');
 var store = require('movian/store').create('account');
+var storeFile = Core.storagePath + '/store/account'; // the file the store above reads and writes
 var oauth = 'https://id.twitch.tv/oauth2/';
 var deviceGrant = 'urn:ietf:params:oauth:grant-type:device_code';
 var defaultClientId = 'm0zd4pbl3td7d0dk0jh9kxrpgn4vh5';
@@ -28,13 +30,16 @@ function save(value) {
     store.session = value;
     session = value;
     checkedAt = 0;
+    // The store writes 5 s later. Twitch kills the old refresh token on rotation, so losing
+    // the new one on quit logs the user out: write the same file now.
+    fs.writeFileSync(storeFile, JSON.stringify({clientId: store.clientId, session: value}));
 }
 
 exports.clientId = function() { return store.clientId || defaultClientId; };
 exports.setClientId = function(value) {
     if ((value || defaultClientId) === exports.clientId()) return;
-    save(null);
     store.clientId = value;
+    save(null);
 };
 exports.login = function() { return session && session.login; };
 exports.logout = function() { save(null); };

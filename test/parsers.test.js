@@ -10,8 +10,11 @@ var stubs = {
         return {statuscode: 200, toString: function() { return playlist; }};
     }},
     'native/faprovider': {register: function() {}},
-    'movian/store': {create: function() { return saved; }}
+    'movian/store': {create: function() { return saved; }},
+    fs: Object.create(require('fs'), {writeFileSync: {value: function(file, text) { disk[file] = JSON.parse(text); }}})
 };
+var disk = {};
+global.Core = {storagePath: '/movian'};
 var load = Module._load;
 Module._load = function(name) { return stubs[name] || load.apply(this, arguments); };
 var live = require('../live');
@@ -102,6 +105,7 @@ stubs['movian/http'].request = function(url, options) {
 };
 account.catalog('games/top', {});
 assert.strictEqual(saved.session.refreshToken, 'r2', 'rotated refresh token is saved');
+assert.strictEqual(disk['/movian/store/account'].session.refreshToken, 'r2', 'and on disk at once');
 assert.strictEqual(saved.session.accessToken, 'a2');
 
 // GraphQL: one retry on Twitch's transient "service error", then give up.
