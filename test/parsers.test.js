@@ -176,6 +176,17 @@ fs.readdirSync(path.join(__dirname, '../lang')).forEach(function(file) {
         assert.strictEqual(table[key].split('%s').length, key.split('%s').length, file + ': placeholders in ' + key);
     });
 });
+// Views read their text by id; an id missing from viewKeys shows an empty caption with no error.
+var viewIds = {};
+fs.readdirSync(path.join(__dirname, '../views')).forEach(function(file) {
+    var view = fs.readFileSync(path.join(__dirname, '../views', file), 'utf8');
+    view.replace(/\bLP?\((\w+)\)|NAV\("\w+", (\w+)|CONTEXT_LINK\((\w+)/g, function(_, a, b, c) {
+        var id = a || b || c;
+        if (!/^[A-Z]+$/.test(id)) viewIds[id] = file; // KEY, TEXT: the macros' own parameters
+    });
+});
+Object.keys(viewIds).forEach(function(id) { assert.ok(id in i18n.viewKeys, viewIds[id] + ': unknown text id ' + id); });
+Object.keys(i18n.viewKeys).forEach(function(id) { assert.ok(id in viewIds, 'viewKeys.' + id + ' is used by no view'); });
 stubs['movian/prop'].global.i18n.iso639_1 = 'sp';
 assert.strictEqual(i18n.t('Search'), 'Buscar', "Movian's Spanish reports sp; it reads lang/es.lang");
 stubs['movian/prop'].global.i18n.iso639_1 = 'it';
