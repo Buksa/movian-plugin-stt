@@ -16,6 +16,7 @@ var stubs = {
 };
 var disk = {};
 global.Core = {storagePath: '/movian'};
+global.Plugin = {path: require('path').join(__dirname, '..') + '/'}; // i18n.js reads lang/ from here
 var load = Module._load;
 Module._load = function(name) { return stubs[name] || load.apply(this, arguments); };
 var live = require('../live');
@@ -156,22 +157,22 @@ var links = {
 };
 Object.keys(links).forEach(function(link) { assert.strictEqual(sandbox.destination(link), links[link], link); });
 
-// i18n: every t('...') key in the plugin has a Russian entry; other languages get the English key.
+// i18n: every t('...') key and every view key has an entry in lang/ru.lang; other languages get English.
 var i18n = require('../i18n');
+var keys = ['Streams', 'Videos', 'Clips']; // main.js sections, translated through a variable
 ['main.js', 'account.js', 'account-page.js', 'twitch.js', 'live.js'].forEach(function(file) {
     var source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
-    var calls = source.match(/\bt\('(?:[^'\\]|\\.)*'/g) || [];
-    calls.forEach(function(call) {
-        var key = call.slice(3, -1);
-        assert.ok(i18n.ru[key], file + ': no Russian for ' + key);
-    });
+    (source.match(/\bt\('(?:[^'\\]|\\.)*'/g) || []).forEach(function(call) { keys.push(call.slice(3, -1)); });
 });
-var keys = ['Streams', 'Videos', 'Clips']; // main.js sections, translated through a variable
-keys.forEach(function(key) { assert.ok(i18n.ru[key], key); });
+Object.keys(i18n.viewKeys).forEach(function(id) { keys.push(i18n.viewKeys[id]); });
+keys.forEach(function(key) { assert.notStrictEqual(i18n.t(key), key, 'no Russian in lang/ru.lang for ' + key); });
 assert.strictEqual(i18n.t('Channel: %s', 'x'), 'Канал: x');
 assert.strictEqual(i18n.t('Twitch search: %s', "$& $' x"), "Поиск Twitch: $& $' x", '$ patterns stay literal');
+assert.strictEqual(i18n.viewText().navSearch, 'Поиск');
 stubs['movian/prop'].global.i18n.iso639_1 = 'de';
-assert.strictEqual(i18n.t('Channel: %s', 'x'), 'Channel: x', 'unknown language falls back to English');
+assert.strictEqual(i18n.t('Channel: %s', 'x'), 'Channel: x', 'a language without a file falls back to English');
+stubs['movian/prop'].global.i18n.iso639_1 = '../x';
+assert.strictEqual(i18n.t('Videos'), 'Videos', 'odd language codes never reach the file path');
 stubs['movian/prop'].global.i18n.iso639_1 = 'ru';
 
 console.log('ok');

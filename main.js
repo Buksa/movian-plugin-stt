@@ -9,7 +9,8 @@ var live = require('./live');
 var quality = require('./quality');
 var account = require('./account');
 var accountPage = require('./account-page');
-var t = require('./i18n').t;
+var i18n = require('./i18n');
+var t = i18n.t;
 var prefix = 'smarttwitchtv:';
 var title = 'SmartTwitchTV';
 var icon = Plugin.path + 'logo.svg';
@@ -24,6 +25,7 @@ function directory(page, name, section, mode, image) {
     page.type = 'raw';
     page.loading = true;
     page.metadata.glwview = Plugin.path + 'views/catalog.view';
+    page.metadata.i18n = i18n.viewText();
     page.metadata.title = name;
     page.metadata.section = section;
     page.metadata.mode = mode;
@@ -427,6 +429,7 @@ function playback(page, kind, id) {
     }
     page.type = 'raw';
     page.metadata.glwview = Plugin.path + 'views/player.view';
+    page.metadata.i18n = i18n.viewText();
     page.metadata.title = media.title;
     choices.items.forEach(function(item, index) {
         var action = page.appendAction(item.label, function() { rememberQuality(index); });

@@ -1,8 +1,10 @@
 // Raw page: the standard Movian directory chrome would double the TV rail.
 delta($ui.hideClock, isVisible());
 
-// UI text in English or Russian; follows Movian's language setting live.
-#define T(EN, RU) {select($core.i18n.iso639_1 == "ru", RU, EN)}
+// UI text comes from the page (i18n.js viewText, translated from lang/*.lang).
+#define L(KEY) {($self.model.metadata.i18n.KEY)} // parens: a macro body ending in a parameter crashes GLW (glw_view_preproc.c:237)
+// Inside the item cloner $self is the item, so read the page through $parent.
+#define LP(KEY) {($parent.model.metadata.i18n.KEY)}
 
 $view.mode = $self.model.metadata.mode;
 $view.section = $self.model.metadata.section;
@@ -27,7 +29,7 @@ $view.railText = clamp(($view.railProgress - 0.3) / 0.7, 0, 1);
   focus("twitch-grid");
 }
 
-#define NAV(KEY, EN, RU, ICON, ACTION) {
+#define NAV(KEY, TEXT, ICON, ACTION) {
   widget(container_z, {
     id: "twitch-nav-" + KEY;
     height: 1.74em;
@@ -44,7 +46,7 @@ $view.railText = clamp(($view.railProgress - 0.3) / 0.7, 0, 1);
         widget(icon, { source: ICON; size: 1.12em; color: 0.96; });
       });
       widget(label, {
-        caption: T(EN, RU);
+        caption: L(TEXT);
         alpha: $view.railText;
         align: left;
         padding: [0.45em, 0, 0, 0];
@@ -58,7 +60,7 @@ $view.railText = clamp(($view.railProgress - 0.3) / 0.7, 0, 1);
   });
 }
 
-#define CONTEXT_LINK(EN, RU, TARGET, ID) {
+#define CONTEXT_LINK(TEXT, TARGET, ID) {
   widget(container_z, {
     id: ID;
     height: 1.8em;
@@ -67,7 +69,7 @@ $view.railText = clamp(($view.railProgress - 0.3) / 0.7, 0, 1);
     onEvent(activate, navOpen(TARGET));
     widget(quad, { color: [0.25, 0.16, 0.34]; alpha: select(isNavFocused() || isHovered(), 1, 0); });
     widget(label, {
-      caption: T(EN, RU);
+      caption: L(TEXT);
       align: left;
       padding: [0.55em, 0];
       size: 0.78em;
@@ -112,7 +114,7 @@ widget(container_z, {
           ellipsize: true;
         });
         widget(label, {
-          caption: T("← Menu   ·   OK Open", "← Меню   ·   OK Открыть");
+          caption: L(menuHint);
           align: topLeft;
           padding: [0, 0.12em];
           color: 0.66;
@@ -275,7 +277,7 @@ widget(container_z, {
                     });
                     widget(label, {
                       hidden: !$view.compact || isVoid($self.metadata.count);
-                      caption: value2quantity($self.metadata.count) + T(" views", " просмотров");
+                      caption: value2quantity($self.metadata.count) + " " + LP(views);
                       size: 0.59em;
                       color: 0.76;
                     });
@@ -283,7 +285,7 @@ widget(container_z, {
                   widget(label, {
                     hidden: !$clone.game || !$self.metadata.channels;
                     height: 0.65em;
-                    caption: T("Channels: ", "Каналы: ") + $self.metadata.channels;
+                    caption: LP(channels) + " " + $self.metadata.channels;
                     align: left;
                     size: 0.62em;
                     color: 0.87;
@@ -292,7 +294,7 @@ widget(container_z, {
                   widget(label, {
                     hidden: !$clone.game || !$self.metadata.viewers;
                     height: 0.65em;
-                    caption: T("Viewers: ", "Зрители: ") + $self.metadata.viewers;
+                    caption: LP(viewersLabel) + " " + $self.metadata.viewers;
                     align: left;
                     size: 0.62em;
                     color: 0.87;
@@ -325,7 +327,7 @@ widget(container_z, {
                     caption: select($self.metadata.started,
                                     value2duration($core.clock.unixtime - $self.metadata.started) + " · ", "") +
                              select(isSet($self.metadata.count), value2quantity($self.metadata.count) +
-                                    select($self.metadata.kind == "live", T(" viewers", " зрителей"), T(" views", " просмотров")), "");
+                                    " " + select($self.metadata.kind == "live", LP(viewers), LP(views)), "");
                     align: left;
                     size: 0.63em;
                     color: 0.76;
@@ -338,7 +340,7 @@ widget(container_z, {
         });
         widget(label, {
           hidden: $view.total || (!$self.model.loading && !$self.model.metadata.notice);
-          caption: select($self.model.loading, T("Loading Twitch…", "Загрузка Twitch…"), $self.model.metadata.notice);
+          caption: select($self.model.loading, L(loading), $self.model.metadata.notice);
           align: center;
           size: 0.9em;
           color: 0.78;
@@ -391,21 +393,21 @@ widget(container_z, {
           });
         });
         space(0.58);
-        NAV("account", "Twitch account", "Аккаунт Twitch", "skin://icons/ic_person_48px.svg", navOpen("smarttwitchtv:account"));
-        NAV("search", "Search", "Поиск", "skin://icons/ic_search_48px.svg", deliverEvent($self.eventSink, "TwitchSearch"));
+        NAV("account", navAccount, "skin://icons/ic_person_48px.svg", navOpen("smarttwitchtv:account"));
+        NAV("search", navSearch, "skin://icons/ic_search_48px.svg", deliverEvent($self.eventSink, "TwitchSearch"));
         space(0.35);
-        NAV("favorites", "Favorites", "Избранное", "skin://icons/ic_favorite_48px.svg", navOpen("smarttwitchtv:favorites"));
-        NAV("streams", "Live streams", "Прямые эфиры", "skin://icons/ic_play_arrow_48px.svg", navOpen("smarttwitchtv:streams"));
-        NAV("games", "Categories", "Категории", "skin://icons/ic_apps_48px.svg", navOpen("smarttwitchtv:categories"));
-        NAV("videos", "Videos", "Записи", "skin://icons/ic_local_movies_48px.svg", navOpen("smarttwitchtv:videos"));
-        NAV("clips", "Clips", "Клипы", "skin://icons/ic_movie_48px.svg", navOpen("smarttwitchtv:clips"));
+        NAV("favorites", navFavorites, "skin://icons/ic_favorite_48px.svg", navOpen("smarttwitchtv:favorites"));
+        NAV("streams", navStreams, "skin://icons/ic_play_arrow_48px.svg", navOpen("smarttwitchtv:streams"));
+        NAV("games", navGames, "skin://icons/ic_apps_48px.svg", navOpen("smarttwitchtv:categories"));
+        NAV("videos", navVideos, "skin://icons/ic_local_movies_48px.svg", navOpen("smarttwitchtv:videos"));
+        NAV("clips", navClips, "skin://icons/ic_movie_48px.svg", navOpen("smarttwitchtv:clips"));
         space(1);
         widget(label, {
           alpha: $view.railText;
           height: 1.15em;
           filterConstraintX: true;
           ellipsize: true;
-          caption: T("→ Close menu", "→ Закрыть меню");
+          caption: L(closeMenu);
           padding: [0.42em, 0.3em];
           align: left;
           size: 0.57em;
@@ -436,8 +438,8 @@ widget(container_z, {
               size: 0.95em;
               color: 1;
             });
-            CONTEXT_LINK("Open channel", "Открыть канал", $view.contextChannel, "twitch-context-channel");
-            CONTEXT_LINK("Open category", "Открыть категорию", $view.contextCategory, "twitch-context-game");
+            CONTEXT_LINK(openChannel, $view.contextChannel, "twitch-context-channel");
+            CONTEXT_LINK(openCategory, $view.contextCategory, "twitch-context-game");
           });
         });
       });

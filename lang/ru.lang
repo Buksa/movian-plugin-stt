@@ -1,0 +1,248 @@
+language: Russian
+native: Русский
+#
+# SmartTwitchTV. id: is the English text the plugin shows, msg: the translation.
+#
+
+id: Live streams
+msg: Прямые эфиры
+
+id: Twitch categories
+msg: Категории Twitch
+
+id: Twitch account
+msg: Аккаунт Twitch
+
+id: Favorite channels
+msg: Избранные каналы
+
+id: Streams
+msg: Трансляции
+
+id: Videos
+msg: Записи
+
+id: Clips
+msg: Клипы
+
+id: Twitch search: %s
+msg: Поиск Twitch: %s
+
+id: Channel, category or Twitch link
+msg: Канал, категория или ссылка Twitch
+
+id: Nothing found.
+msg: Ничего не найдено.
+
+id: Nothing here yet.
+msg: В этом разделе пока ничего нет.
+
+id: Log in to Twitch for more pages.
+msg: Для следующих страниц войдите в Twitch.
+
+id: Twitch session ended. Log in again.
+msg: Сеанс Twitch завершён. Войдите заново.
+
+id: Log in again to show your Twitch follows.
+msg: Войдите заново, чтобы показать подписки Twitch.
+
+id: Add a channel to favorites on its page.
+msg: Добавьте канал в избранное на его странице.
+
+id: Channel added to favorites
+msg: Канал добавлен в избранное
+
+id: Channel removed from favorites
+msg: Канал удалён из избранного
+
+id: Add to favorites
+msg: Добавить в избранное
+
+id: Remove from favorites
+msg: Убрать из избранного
+
+id: Live
+msg: В эфире
+
+id: Offline
+msg: Сейчас не в эфире
+
+id: Channel: %s
+msg: Канал: %s
+
+id: Category: %s
+msg: Категория: %s
+
+id: Open the stream on the channel page.
+msg: Откройте трансляцию на странице канала.
+
+id: Source · %s
+msg: Источник · %s
+
+id: Twitch video
+msg: Запись Twitch
+
+id: Twitch clip
+msg: Клип Twitch
+
+id: Logged in as %s
+msg: Вы вошли как %s
+
+id: Logged in as %s. Open “Categories”.
+msg: Вы вошли как %s. Откройте «Категории».
+
+id: Log in to open the full category catalog.
+msg: Войдите, чтобы открыть полный каталог категорий.
+
+id: Code login cancelled.
+msg: Вход по коду отменён.
+
+id: Log in with a code
+msg: Войти по коду
+
+id: Requesting a code from Twitch…
+msg: Запрашиваем код у Twitch…
+
+id: On your phone open twitch.tv/activate?public=true and enter the code.
+msg: На телефоне откройте twitch.tv/activate?public=true и введите код.
+
+id: The code expired. Request a new one.
+msg: Код истёк. Запросите новый.
+
+id: Login denied.
+msg: Вход отклонён.
+
+id: Set Public Client ID
+msg: Настроить Public Client ID
+
+id: Public Client ID (leave empty for the built-in one)
+msg: Public Client ID (пустое поле — использовать встроенный)
+
+id: Enter a Public Client ID, not a secret.
+msg: Укажите Public Client ID, не секрет.
+
+id: Choose “Log in with a code”.
+msg: Выберите «Войти по коду».
+
+id: Log out / cancel login
+msg: Выйти / отменить вход
+
+id: Twitch account disconnected.
+msg: Аккаунт Twitch отключён.
+
+id: Twitch gave no code. Check that the Client ID belongs to a Public app.
+msg: Twitch не выдал код. Проверьте, что Client ID принадлежит приложению типа Public.
+
+id: Twitch rejected the login code (HTTP %s). Request a new code.
+msg: Twitch отклонил код входа (HTTP %s). Запросите новый код.
+
+id: Could not check the Twitch session (HTTP %s).
+msg: Не удалось проверить сеанс Twitch (HTTP %s).
+
+id: Twitch returned an incomplete token.
+msg: Twitch вернул неполный токен.
+
+id: Twitch did not confirm the user token.
+msg: Twitch не подтвердил токен пользователя.
+
+id: Could not renew the Twitch login (HTTP %s).
+msg: Не удалось обновить вход Twitch (HTTP %s).
+
+id: Twitch login check is already running. Open the catalog again.
+msg: Проверка входа Twitch уже идёт. Откройте каталог ещё раз.
+
+id: Could not load the Helix catalog (HTTP %s).
+msg: Не удалось загрузить каталог Helix (HTTP %s).
+
+id: Invalid Twitch stream address.
+msg: Неверный адрес эфира Twitch.
+
+id: Invalid Twitch stream CDN.
+msg: Неверный CDN эфира Twitch.
+
+id: Twitch playlist unavailable (HTTP %s).
+msg: Плейлист Twitch недоступен (HTTP %s).
+
+id: Twitch offered no compatible H.264 variant.
+msg: Twitch не предоставил совместимый вариант H.264.
+
+id: Could not connect to Twitch: %s
+msg: Не удалось подключиться к Twitch: %s
+
+id: Twitch returned HTTP %s
+msg: Twitch вернул HTTP %s
+
+id: Twitch API error
+msg: Ошибка API Twitch
+
+id: Unknown Twitch section.
+msg: Неизвестный раздел Twitch.
+
+id: Channel or category not found.
+msg: Канал или категория не найдены.
+
+id: Twitch channel not found.
+msg: Канал Twitch не найден.
+
+id: Twitch category not found.
+msg: Категория Twitch не найдена.
+
+id: Twitch did not allow playback.
+msg: Twitch не выдал разрешение на просмотр.
+
+id: The channel is offline.
+msg: Канал сейчас не в эфире.
+
+id: The Twitch video was deleted or is unavailable.
+msg: Запись Twitch удалена или недоступна.
+
+id: The Twitch clip was deleted or is unavailable.
+msg: Клип Twitch удалён или недоступен.
+
+id: The clip cannot be played.
+msg: Клип недоступен для просмотра.
+
+id: ← Menu   ·   OK Open
+msg: ← Меню   ·   OK Открыть
+
+id: Loading Twitch…
+msg: Загрузка Twitch…
+
+id: → Close menu
+msg: → Закрыть меню
+
+id: Search
+msg: Поиск
+
+id: Favorites
+msg: Избранное
+
+id: Categories
+msg: Категории
+
+id: Open channel
+msg: Открыть канал
+
+id: Open category
+msg: Открыть категорию
+
+id: Channels:
+msg: Каналы:
+
+id: Viewers:
+msg: Зрители:
+
+id: views
+msg: просмотров
+
+id: viewers
+msg: зрителей
+
+id: Quality:
+msg: Качество:
+
+id: Video quality
+msg: Качество видео
+
+id: ← Back to player
+msg: ← Назад в плеер
