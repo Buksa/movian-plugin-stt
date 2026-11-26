@@ -11,6 +11,7 @@ var stubs = {
     }},
     'native/faprovider': {register: function() {}},
     'movian/store': {create: function() { return saved; }},
+    'movian/prop': {global: {i18n: {iso639_1: 'ru'}}},
     fs: Object.create(require('fs'), {writeFileSync: {value: function(file, text) { disk[file] = JSON.parse(text); }}})
 };
 var disk = {};
@@ -154,5 +155,22 @@ var links = {
     'just chatting': 'smarttwitchtv:search:just%20chatting'
 };
 Object.keys(links).forEach(function(link) { assert.strictEqual(sandbox.destination(link), links[link], link); });
+
+// i18n: every t('...') key in the plugin has a Russian entry; other languages get the English key.
+var i18n = require('../i18n');
+['main.js', 'account.js', 'account-page.js', 'twitch.js', 'live.js'].forEach(function(file) {
+    var source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
+    var calls = source.match(/\bt\('(?:[^'\\]|\\.)*'/g) || [];
+    calls.forEach(function(call) {
+        var key = call.slice(3, -1);
+        assert.ok(i18n.ru[key], file + ': no Russian for ' + key);
+    });
+});
+var keys = ['Streams', 'Videos', 'Clips']; // main.js sections, translated through a variable
+keys.forEach(function(key) { assert.ok(i18n.ru[key], key); });
+assert.strictEqual(i18n.t('Channel: %s', 'x'), 'Канал: x');
+stubs['movian/prop'].global.i18n.iso639_1 = 'de';
+assert.strictEqual(i18n.t('Channel: %s', 'x'), 'Channel: x', 'unknown language falls back to English');
+stubs['movian/prop'].global.i18n.iso639_1 = 'ru';
 
 console.log('ok');

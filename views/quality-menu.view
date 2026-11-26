@@ -11,7 +11,7 @@ widget(container_z, {
         padding: 0.65em;
         align: top;
         widget(label, {
-          caption: "Качество видео";
+          caption: T("Video quality", "Качество видео");
           height: 2.1em;
           align: left;
           bold: true;
@@ -41,7 +41,7 @@ widget(container_z, {
           });
         });
         widget(label, {
-          caption: "← Назад в плеер";
+          caption: T("← Back to player", "← Назад в плеер");
           height: 1.3em;
           align: left;
           color: 0.7;

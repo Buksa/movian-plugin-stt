@@ -1,6 +1,7 @@
 'use strict';
 
 var http = require('movian/http');
+var t = require('./i18n').t;
 var endpoint = 'https://gql.twitch.tv/gql';
 var clientId = 'kimne78kx3ncx6brgo4mv6wki5h1ko'; // Public identifier of the Twitch web client, not an OAuth token.
 var playbackParams = '{platform:"web",playerBackend:"mediaplayer",playerType:"site"}';
@@ -24,10 +25,10 @@ function gql(selection, selectItems, retried) {
             noFail: true
         });
     } catch (e) {
-        throw new Error('Не удалось подключиться к Twitch: ' + e.message);
+        throw new Error(t('Could not connect to Twitch: %s', e.message));
     }
     if (response.statuscode !== 200) {
-        throw new Error('Twitch вернул HTTP ' + response.statuscode);
+        throw new Error(t('Twitch returned HTTP %s', response.statuscode));
     }
     var body = JSON.parse(response.toString());
     // Catalog queries can keep usable items when only some branches failed.
@@ -36,7 +37,7 @@ function gql(selection, selectItems, retried) {
         var message = body.errors && body.errors[0] && body.errors[0].message;
         // Twitch fails a query now and then with "service error" and serves it a moment later.
         if (message === 'service error' && !retried) return gql(selection, selectItems, true);
-        throw new Error('Ошибка API Twitch' + (message ? ': ' + message : ''));
+        throw new Error(t('Twitch API error') + (message ? ': ' + message : ''));
     }
     return selectItems ? items : body.data;
 }
@@ -47,13 +48,13 @@ function parentField(scope, key) {
         var id = /^id-([0-9]+)$/.exec(key);
         return id ? 'game(id:' + JSON.stringify(id[1]) + ')' : 'game(slug:' + JSON.stringify(key) + ')';
     }
-    throw new Error('Неизвестный раздел Twitch.');
+    throw new Error(t('Unknown Twitch section.'));
 }
 
 exports.list = function(kind, scope, key, limit) {
     var selection = kind + '(first:' + limit + '){pageInfo{hasNextPage} edges{node{' + lists[kind] + '}}}';
     var result = scope ? gql('parent:' + parentField(scope, key) + '{' + selection + '}').parent : gql(selection);
-    if (!result) throw new Error('Канал или категория не найдены.');
+    if (!result) throw new Error(t('Channel or category not found.'));
     var connection = result[kind];
     var edges = connection && connection.edges || [];
     var nodes = [];
@@ -74,7 +75,7 @@ exports.gameStats = function(ids) {
         try {
             batch = gql(selection);
         } catch (e) {
-            console.warn('Twitch: статистика категорий недоступна: ' + e.message);
+            console.warn('Twitch: category stats unavailable: ' + e.message);
             continue;
         }
         Object.keys(batch).forEach(function(key) { stats[key] = batch[key]; });
@@ -117,13 +118,13 @@ exports.users = function(logins) {
 
 exports.channel = function(login) {
     var user = gql(parentField('channel', login) + '{id ' + userFields + ' stream{' + streamFields + '}}').user;
-    if (!user) throw new Error('Канал Twitch не найден.');
+    if (!user) throw new Error(t('Twitch channel not found.'));
     return user;
 };
 
 exports.category = function(slug) {
     var game = gql(parentField('category', slug) + '{' + gameFields + '}').game;
-    if (!game) throw new Error('Категория Twitch не найдена.');
+    if (!game) throw new Error(t('Twitch category not found.'));
     return game;
 };
 
@@ -140,7 +141,7 @@ function queryString(args) {
 }
 
 function hls(kind, id, token) {
-    if (!token || !token.signature || !token.value) throw new Error('Twitch не выдал разрешение на просмотр.');
+    if (!token || !token.signature || !token.value) throw new Error(t('Twitch did not allow playback.'));
     var live = kind === 'live';
     var args = {sig: token.signature, token: token.value, allow_source: 'true',
                 p: Math.floor(Math.random() * 1000000), player: 'twitchweb'};
@@ -155,20 +156,20 @@ exports.play = function(kind, id) {
     if (kind === 'live') {
         data = gql(parentField('channel', id) + '{displayName stream{title}}' +
             'access:streamPlaybackAccessToken(channelName:' + target + params);
-        if (!data.user || !data.user.stream) throw new Error('Канал сейчас не в эфире.');
+        if (!data.user || !data.user.stream) throw new Error(t('The channel is offline.'));
         return {title: data.user.stream.title || data.user.displayName, url: hls(kind, id, data.access)};
     }
     if (kind === 'vod') {
         data = gql('video(id:' + target + '){title}' +
             'access:videoPlaybackAccessToken(id:' + target + params);
-        if (!data.video) throw new Error('Запись Twitch удалена или недоступна.');
-        return {title: data.video.title || 'Запись Twitch', url: hls(kind, id, data.access)};
+        if (!data.video) throw new Error(t('The Twitch video was deleted or is unavailable.'));
+        return {title: data.video.title || t('Twitch video'), url: hls(kind, id, data.access)};
     }
     clip = gql('clip(slug:' + target + '){title playbackAccessToken(params:' + playbackParams +
         '){signature value} videoQualities{quality frameRate sourceURL}}').clip;
-    if (!clip) throw new Error('Клип Twitch удалён или недоступен.');
+    if (!clip) throw new Error(t('The Twitch clip was deleted or is unavailable.'));
     var token = clip.playbackAccessToken;
-    if (!token || !token.signature || !token.value) throw new Error('Клип недоступен для просмотра.');
+    if (!token || !token.signature || !token.value) throw new Error(t('The clip cannot be played.'));
     var auth = queryString({sig: token.signature, token: token.value});
     var items = [];
     var seen = Object.create(null);
@@ -181,7 +182,7 @@ exports.play = function(kind, id) {
         items.push({label: label, height: Number(q.quality), fps: fps, url: q.sourceURL +
             (q.sourceURL.indexOf('?') === -1 ? '?' : '&') + auth});
     });
-    if (!items.length) throw new Error('Клип недоступен для просмотра.');
+    if (!items.length) throw new Error(t('The clip cannot be played.'));
     items.sort(function(a, b) { return b.height - a.height || b.fps - a.fps; });
-    return {title: clip.title || 'Клип Twitch', items: items, initial: 0};
+    return {title: clip.title || t('Twitch clip'), items: items, initial: 0};
 };

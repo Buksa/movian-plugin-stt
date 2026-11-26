@@ -1,4 +1,7 @@
 // Keep the native video controls and put Twitch's quality picker above them.
+// UI text in English or Russian; follows Movian's language setting live.
+#define T(EN, RU) {select($core.i18n.iso639_1 == "ru", RU, EN)}
+
 #define CLOSE_QUALITY() {
   $self.model.metadata.qualityOpen = false;
   focus("videowidget");
@@ -51,7 +54,7 @@ widget(container_z, {
           alpha: 0.85;
         });
         widget(label, {
-          caption: "Качество: " + $self.model.metadata.quality;
+          caption: T("Quality: ", "Качество: ") + $self.model.metadata.quality;
           padding: [0.6em, 0.2em];
           align: center;
           size: 0.85em;

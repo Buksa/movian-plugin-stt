@@ -9,6 +9,7 @@ var live = require('./live');
 var quality = require('./quality');
 var account = require('./account');
 var accountPage = require('./account-page');
+var t = require('./i18n').t;
 var prefix = 'smarttwitchtv:';
 var title = 'SmartTwitchTV';
 var icon = Plugin.path + 'logo.svg';
@@ -76,17 +77,17 @@ function toggleFavorite(user) {
     var index = favoriteIndex(channels, user.login);
     if (index < 0) {
         channels.push({login: user.login, displayName: user.displayName, profileImageURL: user.profileImageURL});
-        popup.notify('Канал добавлен в избранное', 2);
+        popup.notify(t('Channel added to favorites'), 2);
     } else {
         channels.splice(index, 1);
-        popup.notify('Канал удалён из избранного', 2);
+        popup.notify(t('Channel removed from favorites'), 2);
     }
     favorites.channels = channels;
 }
 
 function channelItem(page, user) {
     var item = link(page, 'channel', user.displayName || user.login, user.login, user.profileImageURL,
-                    user.stream && 'В эфире');
+                    user.stream && t('Live'));
     item.root.metadata.kind = 'channel';
     if (user.stream) item.root.metadata.live = true;
     return item;
@@ -126,11 +127,11 @@ function streamItem(page, stream, user) {
     var item = videoItem(page, 'live', user.login, stream.title, stream.previewImageURL, name, stream);
     var channelUrl = url('channel', user.login);
     item.root.metadata.channelUrl = channelUrl;
-    item.addOptURL('Канал: ' + name, channelUrl);
+    item.addOptURL(t('Channel: %s', name), channelUrl);
     if (stream.game && stream.game.slug) {
         var categoryUrl = url('category', stream.game.slug);
         item.root.metadata.categoryUrl = categoryUrl;
-        item.addOptURL('Категория: ' + stream.game.name, categoryUrl);
+        item.addOptURL(t('Category: %s', stream.game.name), categoryUrl);
     }
 }
 
@@ -170,12 +171,12 @@ function attachCatalog(page, kind, batch, load) {
         while (cursor && !cursors[cursor]) {
             cursors[cursor] = true;
             var next = load(cursor);
-            if (!next) throw new Error('Сеанс Twitch завершён. Войдите заново.');
+            if (!next) throw new Error(t('Twitch session ended. Log in again.'));
             if (append(next)) return true;
         }
         return false;
     }
-    if (!append(batch) && !advance()) page.metadata.notice = 'В этом разделе пока ничего нет.';
+    if (!append(batch) && !advance()) page.metadata.notice = t('Nothing here yet.');
     if (cursor && !cursors[cursor]) page.paginator = function() {
         try {
             advance();
@@ -260,12 +261,12 @@ function listing(page, name, kind, scope, key) {
     var items = result.nodes;
     var offset = 0;
     page.metadata.catalogTotal = items.length;
-    if (!items.length) page.metadata.notice = 'В этом разделе пока ничего нет.';
+    if (!items.length) page.metadata.notice = t('Nothing here yet.');
     function appendBatch() {
         var end = Math.min(offset + 24, items.length);
         while (offset < end) listItem(page, kind, items[offset++]);
         if (offset < items.length) return true;
-        if (result.hasMore) page.metadata.notice = 'Для следующих страниц войдите в Twitch.';
+        if (result.hasMore) page.metadata.notice = t('Log in to Twitch for more pages.');
         return false;
     }
     if (appendBatch()) page.paginator = appendBatch;
@@ -285,7 +286,7 @@ function searchRows(page, result, section, append) {
 }
 
 function search(page, query, textOnly) {
-    var heading = 'Поиск Twitch: ' + query;
+    var heading = t('Twitch search: %s', query);
     if (textOnly) {
         page.type = 'directory';
         page.metadata.title = heading;
@@ -295,13 +296,13 @@ function search(page, query, textOnly) {
     var result = twitch.search(query);
     var count = searchRows(page, result, 'channels', channelItem) + searchRows(page, result, 'games', categoryItem);
     if (!count) {
-        if (textOnly) label(page, 'Ничего не найдено.');
-        else page.metadata.notice = 'Ничего не найдено.';
+        if (textOnly) label(page, t('Nothing found.'));
+        else page.metadata.notice = t('Nothing found.');
     }
 }
 
 function input() {
-    var result = popup.textDialog('Канал, категория или ссылка Twitch', true, true);
+    var result = popup.textDialog(t('Channel, category or Twitch link'), true, true);
     return result.rejected ? '' : String(result.input || '').trim();
 }
 
@@ -321,12 +322,12 @@ function destination(query) {
     return url('search', query);
 }
 
-function streams(page) { listing(page, 'Прямые эфиры', 'streams'); }
+function streams(page) { listing(page, t('Live streams'), 'streams'); }
 
 route('start$', streams);
 route('streams$', streams);
 route('(videos|clips)$', function(page, kind) {
-    directory(page, sections[kind], kind, 'video');
+    directory(page, t(sections[kind]), kind, 'video');
     // Twitch has no global clips/videos endpoint: collect popular media by category.
     var ids = twitch.popularGames();
     var offset = 0;
@@ -338,10 +339,10 @@ route('(videos|clips)$', function(page, kind) {
     }
     attachCatalog(page, kind, load(), load);
 });
-route('categories$', function(page) { listing(page, 'Категории Twitch', 'games'); });
+route('categories$', function(page) { listing(page, t('Twitch categories'), 'games'); });
 
 route('account$', function(page) {
-    directory(page, 'Аккаунт Twitch', 'account', 'detail', icon);
+    directory(page, t('Twitch account'), 'account', 'detail', icon);
     accountPage(page);
 });
 function followedChannels(cursor) {
@@ -352,12 +353,12 @@ function followedChannels(cursor) {
 
 // Local favorites first, then the channels the account follows on Twitch (read-only: Twitch has no follow API).
 route('favorites$', function(page) {
-    directory(page, 'Избранные каналы', 'favorites', 'cards');
+    directory(page, t('Favorite channels'), 'favorites', 'cards');
     var batch = account.userId() && followedChannels() || {nodes: []};
     batch.nodes = savedChannels().concat(batch.nodes);
     attachCatalog(page, 'channels', batch, followedChannels);
-    if (account.login() && !account.userId()) page.metadata.notice = 'Войдите заново, чтобы показать подписки Twitch.';
-    else if (!batch.nodes.length) page.metadata.notice = 'Добавьте канал в избранное на его странице.';
+    if (account.login() && !account.userId()) page.metadata.notice = t('Log in again to show your Twitch follows.');
+    else if (!batch.nodes.length) page.metadata.notice = t('Add a channel to favorites on its page.');
 });
 
 route('search:(.+)$', function(page, query) { search(page, decodeURIComponent(query)); });
@@ -365,11 +366,11 @@ route('channel:(' + loginPattern + ')$', function(page, login) {
     var user = twitch.channel(login);
     directory(page, user.displayName || login, 'streams', 'detail', user.profileImageURL);
     if (user.stream) streamItem(page, user.stream, user);
-    else page.metadata.detail = 'Сейчас не в эфире';
-    link(page, 'list:channel:videos', 'Записи', user.login);
-    link(page, 'list:channel:clips', 'Клипы', user.login);
+    else page.metadata.detail = t('Offline');
+    link(page, 'list:channel:videos', t('Videos'), user.login);
+    link(page, 'list:channel:clips', t('Clips'), user.login);
     function favoriteTitle() {
-        return favoriteIndex(savedChannels(), user.login) < 0 ? 'Добавить в избранное' : 'Убрать из избранного';
+        return favoriteIndex(savedChannels(), user.login) < 0 ? t('Add to favorites') : t('Remove from favorites');
     }
     var item = page.appendAction(favoriteTitle(), function() {
         toggleFavorite(user);
@@ -381,16 +382,16 @@ route('category:(.+)$', function(page, encoded) {
     var slug = decodeURIComponent(encoded);
     var game = twitch.category(slug);
     directory(page, game.displayName || slug, 'games', 'detail', game.boxArtURL);
-    link(page, 'list:category:streams', 'Трансляции', slug);
-    link(page, 'list:category:videos', 'Записи', slug);
-    link(page, 'list:category:clips', 'Клипы', slug);
+    link(page, 'list:category:streams', t('Streams'), slug);
+    link(page, 'list:category:videos', t('Videos'), slug);
+    link(page, 'list:category:clips', t('Clips'), slug);
 });
 
-var sections = {streams: 'Трансляции', videos: 'Записи', clips: 'Клипы'};
+var sections = {streams: 'Streams', videos: 'Videos', clips: 'Clips'}; // translated at use: no language yet at plugin start
 route('list:(channel|category):(streams|videos|clips):(.+)$', function(page, scope, kind, encoded) {
     var key = decodeURIComponent(encoded);
-    if (scope === 'channel' && kind === 'streams') throw new Error('Откройте трансляцию на странице канала.');
-    listing(page, sections[kind] + ' · ' + key, kind, scope, key);
+    if (scope === 'channel' && kind === 'streams') throw new Error(t('Open the stream on the channel page.'));
+    listing(page, t(sections[kind]) + ' · ' + key, kind, scope, key);
 });
 
 function playback(page, kind, id) {

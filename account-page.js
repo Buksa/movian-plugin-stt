@@ -3,6 +3,7 @@
 var account = require('./account');
 var prop = require('movian/prop');
 var popup = require('native/popup');
+var t = require('./i18n').t;
 var activeLogin;
 
 module.exports = function(page) {
@@ -24,37 +25,37 @@ module.exports = function(page) {
         });
     }
     if (activeLogin) activeLogin();
-    status(account.login() ? 'Вы вошли как ' + account.login() : 'Войдите, чтобы открыть полный каталог категорий.');
+    status(account.login() ? t('Logged in as %s', account.login()) : t('Log in to open the full category catalog.'));
     page.onEvent('TwitchCancelLogin', function() {
         if (!active()) return;
         cancel();
-        status('Вход по коду отменён.');
+        status(t('Code login cancelled.'));
     });
-    action('Войти по коду', function() {
+    action(t('Log in with a code'), function() {
         var id = account.clientId();
         if (activeLogin) activeLogin();
         activeLogin = cancel;
-        status('Запрашиваем код у Twitch…');
+        status(t('Requesting a code from Twitch…'));
         var challenge = account.start(id);
         if (!active()) return;
         var expires = Date.now() + challenge.expires_in * 1000;
         var interval = Math.max(5, Number(challenge.interval) || 5);
         page.metadata.accountCode = challenge.user_code;
-        status('На телефоне откройте twitch.tv/activate?public=true и введите код.');
+        status(t('On your phone open twitch.tv/activate?public=true and enter the code.'));
         function tick() {
             if (!active()) return;
             timer = undefined;
             try {
-                if (Date.now() >= expires) throw new Error('Код истёк. Запросите новый.');
+                if (Date.now() >= expires) throw new Error(t('The code expired. Request a new one.'));
                 var result = account.poll(id, challenge.device_code);
                 if (!active()) return;
                 if (result.token) {
                     if (!account.complete(id, result.token, active)) return;
                     cancel();
-                    status('Вы вошли как ' + account.login() + '. Откройте «Категории».');
+                    status(t('Logged in as %s. Open “Categories”.', account.login()));
                     return;
                 }
-                if (result.status === 'access_denied') throw new Error('Вход отклонён.');
+                if (result.status === 'access_denied') throw new Error(t('Login denied.'));
                 if (result.status === 'slow_down') interval += 5;
                 timer = setTimeout(tick, interval * 1000);
             } catch (e) {
@@ -63,18 +64,18 @@ module.exports = function(page) {
         }
         timer = setTimeout(tick, interval * 1000);
     });
-    action('Настроить Public Client ID', function() {
-        var answer = popup.textDialog('Public Client ID (пустое поле — использовать встроенный)', true, true);
+    action(t('Set Public Client ID'), function() {
+        var answer = popup.textDialog(t('Public Client ID (leave empty for the built-in one)'), true, true);
         if (answer.rejected) return;
         var id = String(answer.input || '').trim();
-        if (id && !/^[a-z0-9]{20,64}$/i.test(id)) { status('Укажите Public Client ID, не секрет.'); return; }
+        if (id && !/^[a-z0-9]{20,64}$/i.test(id)) { status(t('Enter a Public Client ID, not a secret.')); return; }
         cancel();
         account.setClientId(id);
-        status(account.login() ? 'Вы вошли как ' + account.login() : 'Выберите «Войти по коду».');
+        status(account.login() ? t('Logged in as %s', account.login()) : t('Choose “Log in with a code”.'));
     });
-    action('Выйти / отменить вход', function() {
+    action(t('Log out / cancel login'), function() {
         cancel();
         account.logout();
-        status('Аккаунт Twitch отключён.');
+        status(t('Twitch account disconnected.'));
     });
 };

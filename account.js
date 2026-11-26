@@ -1,6 +1,7 @@
 // Movian's store proxy saves the value but its setter does not return true.
 
 var http = require('movian/http');
+var t = require('./i18n').t;
 var fs = require('fs');
 var store = require('movian/store').create('account');
 var storeFile = Core.storagePath + '/store/account'; // the file the store above reads and writes
@@ -51,7 +52,7 @@ exports.start = function(id) {
     var data = reply.data;
     if (reply.status !== 200 || !data.device_code || !/^[A-Z0-9-]{4,16}$/i.test(data.user_code) ||
         !(data.expires_in > 0)) {
-        throw new Error('Twitch не выдал код. Проверьте, что Client ID принадлежит приложению типа Public.');
+        throw new Error(t('Twitch gave no code. Check that the Client ID belongs to a Public app.'));
     }
     return data;
 };
@@ -68,7 +69,7 @@ exports.poll = function(id, code) {
         return {status: status};
     }
     if (reply.status === 429) return {status: 'slow_down'};
-    throw new Error('Twitch отклонил код входа (HTTP ' + reply.status + '). Запросите новый код.');
+    throw new Error(t('Twitch rejected the login code (HTTP %s). Request a new code.', reply.status));
 };
 
 function validate(id, accessToken) {
@@ -76,7 +77,7 @@ function validate(id, accessToken) {
     if (reply.status === 401) return null;
     // An unreadable 200 must not look like a foreign token, or the session gets deleted.
     if (reply.status !== 200 || !reply.data.client_id) {
-        throw new Error('Не удалось проверить сеанс Twitch (HTTP ' + reply.status + ').');
+        throw new Error(t('Could not check the Twitch session (HTTP %s).', reply.status));
     }
     if (reply.data.client_id !== id || !reply.data.login) return null;
     return reply.data;
@@ -84,7 +85,7 @@ function validate(id, accessToken) {
 
 function sessionValue(id, login, token) {
     if (!token.access_token || !token.refresh_token || !(token.expires_in > 0)) {
-        throw new Error('Twitch вернул неполный токен.');
+        throw new Error(t('Twitch returned an incomplete token.'));
     }
     return {clientId: id, login: login, accessToken: token.access_token,
         refreshToken: token.refresh_token, expires: Date.now() + Number(token.expires_in) * 1000};
@@ -93,7 +94,7 @@ function sessionValue(id, login, token) {
 function setToken(id, token) {
     var value = sessionValue(id, null, token);
     var identity = validate(id, value.accessToken);
-    if (!identity) throw new Error('Twitch не подтвердил токен пользователя.');
+    if (!identity) throw new Error(t('Twitch did not confirm the user token.'));
     value.login = identity.login;
     value.userId = identity.user_id;
     return value;
@@ -115,7 +116,7 @@ function refresh(value) {
         save(null);
         return null;
     }
-    if (reply.status !== 200) throw new Error('Не удалось обновить вход Twitch (HTTP ' + reply.status + ').');
+    if (reply.status !== 200) throw new Error(t('Could not renew the Twitch login (HTTP %s).', reply.status));
     // Store the rotated refresh token before doing any further network I/O.
     var fresh = sessionValue(value.clientId, value.login, reply.data);
     fresh.userId = value.userId;
@@ -131,7 +132,7 @@ function credentials(force) {
     if (checking) {
         // Another page is checking the session; a token that has not expired is still usable.
         if (value.expires > now) return value;
-        throw new Error('Проверка входа Twitch уже идёт. Откройте каталог ещё раз.');
+        throw new Error(t('Twitch login check is already running. Open the catalog again.'));
     }
     checking = true;
     try {
@@ -169,7 +170,7 @@ exports.catalog = function(path, filters, cursor) {
         if (session !== value) return null;
     }
     if (reply.status !== 200 || !Array.isArray(reply.data.data)) {
-        throw new Error('Не удалось загрузить каталог Helix (HTTP ' + reply.status + ').');
+        throw new Error(t('Could not load the Helix catalog (HTTP %s).', reply.status));
     }
     return {nodes: reply.data.data, next: reply.data.pagination && reply.data.pagination.cursor};
 };

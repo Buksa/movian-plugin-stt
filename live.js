@@ -2,6 +2,7 @@
 
 var fap = require('native/faprovider');
 var http = require('movian/http');
+var t = require('./i18n').t;
 var protocol = 'smarttwitch-media';
 var suffix = '/live.m3u8';
 var cdn = /^https:\/\/(?:[a-z0-9-]+\.)+(?:ttvnw\.net|cloudfront\.net|jtvnw\.net)\/[!-~]+$/i;
@@ -11,9 +12,9 @@ var masterPrefix = '#EXTM3U\n#' + new Array(1025).join(' ') + '\n';
 
 function playlist(path) {
     var match = /^(\d+)\/([^/]+)\/live\.m3u8$/.exec(path);
-    if (!match) throw new Error('Неверный адрес эфира Twitch.');
+    if (!match) throw new Error(t('Invalid Twitch stream address.'));
     var variant = decodeURIComponent(match[2]);
-    if (!cdn.test(variant)) throw new Error('Неверный CDN эфира Twitch.');
+    if (!cdn.test(variant)) throw new Error(t('Invalid Twitch stream CDN.'));
     return masterPrefix + '#EXT-X-STREAM-INF:BANDWIDTH=' + match[1] + '\n' + variant + '\n';
 }
 
@@ -46,7 +47,7 @@ fap.register(protocol, {
 
 exports.variants = function(master, isLive) {
     var response = http.request(master, {verifySSL: true, compression: true, noFail: true});
-    if (response.statuscode !== 200) throw new Error('Плейлист Twitch недоступен (HTTP ' + response.statuscode + ').');
+    if (response.statuscode !== 200) throw new Error(t('Twitch playlist unavailable (HTTP %s).', response.statuscode));
     var lines = response.toString().split(/\r?\n/);
     var variants = [];
     var seen = Object.create(null);
@@ -63,14 +64,14 @@ exports.variants = function(master, isLive) {
         var groupRate = group && /^\d+p(\d+)$/.exec(group[1]);
         var fps = rate ? Math.round(Number(rate[1])) : (groupRate ? Number(groupRate[1]) : 0);
         var label = height + 'p' + (fps ? fps : '');
-        if (group && group[1] === 'chunked') label = 'Источник · ' + label;
+        if (group && group[1] === 'chunked') label = t('Source · %s', label);
         if (seen[label]) continue;
         seen[label] = true;
         var bitrate = Math.max(1, Number(bandwidth[1]));
         variants.push({label: label, height: height, fps: fps, bitrate: bitrate,
             url: protocol + '://' + bitrate + '/' + encodeURIComponent(candidate) + suffix});
     }
-    if (!variants.length) throw new Error('Twitch не предоставил совместимый вариант H.264.');
+    if (!variants.length) throw new Error(t('Twitch offered no compatible H.264 variant.'));
     variants.sort(function(a, b) { return b.height - a.height || b.fps - a.fps || b.bitrate - a.bitrate; });
     var initial = 0;
     if (isLive) {
