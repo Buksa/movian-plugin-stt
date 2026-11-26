@@ -87,4 +87,54 @@ stubs['movian/http'].request = function(url) {
 assert.deepStrictEqual(account.catalog('games/top', {}).nodes, [{id: '1'}]);
 assert.deepStrictEqual(inner.nodes, [{id: '1'}], 'concurrent caller is not rejected');
 
+// An expired token is refreshed and the rotated refresh token is stored, or the next refresh logs the user out.
+delete require.cache[require.resolve('../account')];
+saved.session = {clientId: 'cid', login: 'me', accessToken: 'old', refreshToken: 'r1', expires: Date.now() - 1000};
+account = require('../account');
+stubs['movian/http'].request = function(url, options) {
+    if (url.indexOf('/token') !== -1) {
+        assert.strictEqual(options.postdata.refresh_token, 'r1');
+        return json({access_token: 'a2', refresh_token: 'r2', expires_in: 14000});
+    }
+    if (url.indexOf('/validate') !== -1) return json({client_id: 'cid', login: 'me'});
+    assert.strictEqual(options.headers.Authorization, 'Bearer a2');
+    return json({data: []});
+};
+account.catalog('games/top', {});
+assert.strictEqual(saved.session.refreshToken, 'r2', 'rotated refresh token is saved');
+assert.strictEqual(saved.session.accessToken, 'a2');
+
+// GraphQL: one retry on Twitch's transient "service error", then give up.
+var twitch = require('../twitch');
+var gqlReplies = [];
+stubs['movian/http'].request = function() { return json(gqlReplies.shift()); };
+var failed = {data: null, errors: [{message: 'service error'}]};
+gqlReplies.push(failed, {data: {game: {id: '1', slug: 'x'}}});
+assert.strictEqual(twitch.category('x').slug, 'x', 'retried once');
+gqlReplies.push(failed, failed);
+assert.throws(function() { twitch.category('x'); }, /service error/);
+
+// Pasted links: main.js is a Movian script, not a module, so run it in a sandbox and read its top-level function.
+var vm = require('vm');
+var fs = require('fs');
+var path = require('path');
+function Stub() {}
+var sandbox = {Plugin: {path: ''}, console: console, require: function(name) {
+    return {Route: Stub, Searcher: Stub, create: function() { return {}; }};
+}};
+vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../main.js'), 'utf8'), sandbox);
+var links = {
+    'https://www.twitch.tv/videos/123?t=1h': 'smarttwitchtv:play:vod:123',
+    'https://clips.twitch.tv/FunnyClip-abc_1': 'smarttwitchtv:play:clip:FunnyClip-abc_1',
+    'https://www.twitch.tv/Some_User/clip/FunnyClip': 'smarttwitchtv:play:clip:FunnyClip',
+    'https://www.twitch.tv/directory/category/just-chatting': 'smarttwitchtv:category:just-chatting',
+    'https://m.twitch.tv/Some_User': 'smarttwitchtv:channel:some_user',
+    'https://twitch.tv/some_user/videos?filter=archives': 'smarttwitchtv:channel:some_user',
+    'https://www.twitch.tv/directory': 'smarttwitchtv:search:' + encodeURIComponent('https://www.twitch.tv/directory'),
+    'https://www.twitch.tv/settings/profile': 'smarttwitchtv:search:' + encodeURIComponent('https://www.twitch.tv/settings/profile'),
+    'https://www.twitch.tv/directoryfan': 'smarttwitchtv:channel:directoryfan',
+    'just chatting': 'smarttwitchtv:search:just%20chatting'
+};
+Object.keys(links).forEach(function(link) { assert.strictEqual(sandbox.destination(link), links[link], link); });
+
 console.log('ok');

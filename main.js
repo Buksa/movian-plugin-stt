@@ -311,7 +311,10 @@ function destination(query) {
     if (match) return url('play:clip', match[1]);
     match = /^https?:\/\/(?:www\.|m\.)?twitch\.tv\/directory\/category\/([A-Za-z0-9_-]+)\/?(?:[?#].*)?$/i.exec(query);
     if (match) return url('category', match[1]);
-    match = new RegExp('^https?://(?:www\\.|m\\.)?twitch\\.tv/(' + loginPattern + ')/?(?:[?#].*)?$', 'i').exec(query);
+    // Twitch reserves these names for its own pages, so no channel can have them.
+    match = new RegExp('^https?://(?:www\\.|m\\.)?twitch\\.tv/(?!(?:directory|settings|search|videos|downloads|' +
+                       'subscriptions|inventory|wallet|drops|turbo|friends|messages)(?:[/?#]|$))(' + loginPattern +
+                       ')(?:/(?:videos|clips|about|schedule))?/?(?:[?#].*)?$', 'i').exec(query);
     if (match) return url('channel', match[1].toLowerCase());
     return url('search', query);
 }

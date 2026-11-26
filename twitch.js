@@ -12,7 +12,7 @@ var clipFields = 'slug title durationSeconds thumbnailURL viewCount language bro
 var lists = { streams: streamFields + ' broadcaster{' + userFields + '}', games: gameFields,
               videos: videoFields, clips: clipFields };
 
-function gql(selection, selectItems) {
+function gql(selection, selectItems, retried) {
     var response;
     try {
         response = http.request(endpoint, {
@@ -34,6 +34,8 @@ function gql(selection, selectItems) {
     var items = body.data && selectItems ? selectItems(body.data) : null;
     if (!body.data || ((body.errors && body.errors.length) && !(items && items.length))) {
         var message = body.errors && body.errors[0] && body.errors[0].message;
+        // Twitch fails a query now and then with "service error" and serves it a moment later.
+        if (message === 'service error' && !retried) return gql(selection, selectItems, true);
         throw new Error('Ошибка API Twitch' + (message ? ': ' + message : ''));
     }
     return selectItems ? items : body.data;
