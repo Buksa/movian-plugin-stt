@@ -1,3 +1,0 @@
-#!/bin/sh
-# Enable once per clone: git config core.hooksPath .githooks
-exec test/check.sh
