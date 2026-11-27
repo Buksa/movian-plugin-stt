@@ -8,7 +8,7 @@
   "title": "SmartTwitchTV",
   "category": "video",
   "icon": "logo.svg",
-  "homepage": "https://github.com/fgl27/SmartTwitchTV",
+  "homepage": "https://github.com/Buksa/movian-plugin-twitchtv",
   "synopsis": "Twitch broadcasts, recordings and clips",
   "description": "Twitch live streams, recordings and clips in a native TV interface inspired by SmartTwitchTV."
 }
