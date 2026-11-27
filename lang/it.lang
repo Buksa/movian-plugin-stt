@@ -1,7 +1,7 @@
 language: Italian
 native: Italiano
 #
-# SmartTwitchTV. id: is the English text the plugin shows, msg: the translation.
+# STT for Movian. id: is the English text the plugin shows, msg: the translation.
 #
 
 id: Live streams

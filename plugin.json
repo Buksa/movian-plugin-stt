@@ -5,10 +5,10 @@
   "file": "main.js",
   "showtimeVersion": "5.0",
   "version": "1.4.0",
-  "title": "SmartTwitchTV",
+  "title": "STT for Movian",
   "category": "video",
   "icon": "logo.svg",
-  "homepage": "https://github.com/Buksa/movian-plugin-twitchtv",
-  "synopsis": "Twitch broadcasts, recordings and clips",
-  "description": "Twitch live streams, recordings and clips in a native TV interface inspired by SmartTwitchTV."
+  "homepage": "https://github.com/Buksa/movian-plugin-stt",
+  "synopsis": "Live streams, recordings and clips. Compatible with Twitch.",
+  "description": "Live streams, recordings and clips in a native TV interface. Compatible with Twitch. Not affiliated with or endorsed by Twitch. Inspired by fgl27's SmartTwitchTV."
 }
